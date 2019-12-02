@@ -5,7 +5,7 @@ cd `dirname $0`
 
 rm -fr install install.tar env.prepare
 
-
+mkdir -p ./.clear
 gocryptfs .enc .clear
 
 rules=("-e s@__local_bin_dir__@../bin@")
