@@ -1,0 +1,3 @@
+bash_5.0.orig.tar.xz
+
+./configure --host=${CROSS_TC} --prefix=/home/pavelgr/kindle/k3/wordclock/bash/install --enable-arith-for-command --enable-array-variables --enable-brace-expansion --enable-cond-command --enable-cond-regexp --enable-coprocesses --enable-job-control --enable-multibyte --enable-process-substitution --enable-readline --disable-largefile --disable-nls --disable-rpath

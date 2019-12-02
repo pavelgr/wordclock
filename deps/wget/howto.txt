@@ -1,0 +1,3 @@
+wget_1.20.3.orig.tar.gz
+
+CPPFLAGS="${CPPFLAGS} -I/home/pavelgr/kindle/k3/wordclock/deps/libssl/install/include" LDFLAGS="${LDFLAGS} -L/home/pavelgr/kindle/k3/wordclock/deps/libssl/install/lib" ./configure --host=arm-kindle-linux-gnueabi --prefix=/home/pavelgr/kindle/k3/wordclock/wget/install --disable-opie --disable-digest --disable-ntlm --disable-debug --disable-largefile --enable-threads=posix --disable-nls --disable-rpath --disable-ipv6 --disable-iri --disable-pcre2 --disable-pcre --disable-xattr --without-libpsl --with-ssl=openssl --with-openssl --with-libssl-prefix=/home/pavelgr/kindle/k3/wordclock/deps/libssl/install --without-libuuid

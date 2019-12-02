@@ -1,0 +1,3 @@
+ncurses_6.1+20190803.orig.tar.gz
+
+./configure --host=${CROSS_TC} --prefix=/home/pavelgr/kindle/k3/wordclock/bash/curses/install --without-ada --without-cxx --without-cxx-binding --without-manpages --without-progs --without-tack --without-tests --disable-big-core --disable-largefile --disable-ext-funcs --without-develop

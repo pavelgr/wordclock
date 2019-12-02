@@ -1,0 +1,3 @@
+jq_1.6.orig.tar.gz
+
+./configure --host=arm-kindle-linux-gnueabi --prefix=/home/pavelgr/kindle/k3/wordclock/deps/jq/install --without-oniguruma --disable-dependency-tracking --disable-maintainer-mode --disable-valgrind --disable-docs

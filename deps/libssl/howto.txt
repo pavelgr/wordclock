@@ -1,0 +1,1 @@
+./Configure linux-generic32 -DL_ENDIAN --prefix=/home/pavelgr/kindle/k3/wordclock/deps/mosquitto/libssl/install --openssldir=/home/pavelgr/kindle/k3/wordclock/deps/mosquitto/libssl/install/etc/ssl enable-rc5 disable-async disable-tests

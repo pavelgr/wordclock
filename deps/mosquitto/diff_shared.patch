@@ -1,0 +1,61 @@
+--- mosquitto-1.6.7/config.mk	2019-09-25 07:17:33.000000000 -0400
++++ mosquitto-1.6.7_shared/config.mk	2019-12-02 16:18:03.139423350 -0500
+@@ -130,7 +130,7 @@ endif
+ 
+ STATIC_LIB_DEPS:=
+ 
+-LIB_CPPFLAGS=$(CPPFLAGS) -I. -I.. -I../lib -I../src/deps
++LIB_CPPFLAGS=$(CPPFLAGS) -I. -I.. -I../lib -I../src/deps -I../../../libssl/install/include
+ LIB_CFLAGS:=$(CFLAGS)
+ LIB_CXXFLAGS:=$(CXXFLAGS)
+ LIB_LDFLAGS:=$(LDFLAGS)
+@@ -141,11 +141,14 @@ BROKER_CFLAGS:=${CFLAGS} -DVERSION="\"${
+ BROKER_LDFLAGS:=${LDFLAGS}
+ BROKER_LDADD:=
+ 
+-CLIENT_CPPFLAGS:=$(CPPFLAGS) -I.. -I../lib
++CLIENT_CPPFLAGS:=$(CPPFLAGS) -I.. -I../lib -I../../../libssl/install/include
+ CLIENT_CFLAGS:=${CFLAGS} -DVERSION="\"${VERSION}\""
+ CLIENT_LDFLAGS:=$(LDFLAGS) -L../lib
+ CLIENT_LDADD:=
+ 
++PASSWD_CPPFLAGS:=$(CPPFLAGS) -I../../../libssl/install/include
++PASSWD_CFLAGS:=${CFLAGS} -DVERSION="\"${VERSION}\""
++PASSWD_LDFLAGS:=$(LDFLAGS)
+ PASSWD_LDADD:=
+ 
+ ifneq ($(or $(findstring $(UNAME),FreeBSD), $(findstring $(UNAME),OpenBSD), $(findstring $(UNAME),NetBSD)),)
+@@ -196,13 +199,14 @@ ifeq ($(WITH_WRAP),yes)
+ endif
+ 
+ ifeq ($(WITH_TLS),yes)
+-	BROKER_LDADD:=$(BROKER_LDADD) -lssl -lcrypto
+-	LIB_LIBADD:=$(LIB_LIBADD) -lssl -lcrypto
++	BROKER_LDADD:=$(BROKER_LDADD) -L../../../libssl/install/lib -lssl -lcrypto -lpthread
++	LIB_LIBADD:=$(LIB_LIBADD)
+ 	BROKER_CPPFLAGS:=$(BROKER_CPPFLAGS) -DWITH_TLS
+ 	LIB_CPPFLAGS:=$(LIB_CPPFLAGS) -DWITH_TLS
+-	PASSWD_LDADD:=$(PASSWD_LDADD) -lcrypto
++	PASSWD_LDADD:=$(PASSWD_LDADD) -L../../../libssl/install/lib -lssl -lcrypto -ldl -lrt -lpthread
+ 	CLIENT_CPPFLAGS:=$(CLIENT_CPPFLAGS) -DWITH_TLS
+-	STATIC_LIB_DEPS:=$(STATIC_LIB_DEPS) -lssl -lcrypto
++	CLIENT_LDADD:=$(CLIENT_LDADD) -L../../../libssl/install/lib -lssl -lcrypto -ldl -lrt
++	STATIC_LIB_DEPS:=$(STATIC_LIB_DEPS) -L../../../libssl/install/lib -lssl -lcrypto
+ 
+ 	ifeq ($(WITH_TLS_PSK),yes)
+ 		BROKER_CPPFLAGS:=$(BROKER_CPPFLAGS) -DWITH_TLS_PSK
+--- mosquitto-1.6.7/src/Makefile	2019-09-25 07:17:33.000000000 -0400
++++ mosquitto-1.6.7_shared/src/Makefile	2019-12-02 16:11:52.621979277 -0500
+@@ -261,10 +261,10 @@ will_mosq.o : ../lib/will_mosq.c ../lib/
+ 	${CROSS_COMPILE}${CC} $(BROKER_CPPFLAGS) $(BROKER_CFLAGS) -c $< -o $@
+ 
+ mosquitto_passwd : mosquitto_passwd.o
+-	${CROSS_COMPILE}${CC} ${LDFLAGS} $^ -o $@ $(PASSWD_LDADD)
++	${CROSS_COMPILE}${CC} ${PASSWD_LDFLAGS} $^ -o $@ $(PASSWD_LDADD)
+ 
+ mosquitto_passwd.o : mosquitto_passwd.c
+-	${CROSS_COMPILE}${CC} -I.. $(CPPFLAGS) $(CFLAGS) -c $< -o $@
++	${CROSS_COMPILE}${CC} -I.. $(PASSWD_CPPFLAGS) $(PASSWD_CFLAGS) -c $< -o $@
+ 
+ plugin_defer.so : plugin_defer.c mosquitto_plugin.h mosquitto_broker.h mosquitto_broker_internal.h
+ 	${CROSS_COMPILE}${CC} -I. -I../lib -fPIC -shared $< -o $@

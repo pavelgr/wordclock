@@ -1,0 +1,13 @@
+**/__pycache__
+**/.vscode
+**/.clear/**
+**/.env
+**/env.prepare
+**/env.keys
+**/accuweather.txt
+**/bot.txt
+install
+install.tar
+
+!**/.gitkeep
+

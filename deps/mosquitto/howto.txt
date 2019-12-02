@@ -1,0 +1,5 @@
+mosquitto-1.6.7.tar.gz
+
+diff_static.patch || diff_shared.patch
+
+DESTDIR=/home/pavelgr/kindle/k3/wordclock/deps/mosquitto/install make install
