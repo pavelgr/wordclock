@@ -35,6 +35,7 @@ cp deps/coreutils/install/bin/nohup install/device/bin/
 cp deps/coreutils/install/bin/sleep install/device/bin/
 cp deps/coreutils/install/bin/ls install/device/bin/
 cp deps/coreutils/install/bin/base64 install/device/bin/
+cp deps/coreutils/install/bin/nohup install/device/bin/
 cp -a device/{src,prepare.sh,start.sh,stop.sh} install/device/
 cp -a solver/clock_{words,digital,hands} install/device/resources/
 cp env.prepare install/device/env.prepare

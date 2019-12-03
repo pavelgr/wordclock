@@ -202,7 +202,7 @@ clock() {
                 start|resume|update)
                     stopProcess $name $process
 
-                    if [[! -z "$params" ]]; then
+                    if [[ ! -z "$params" ]]; then
                         currentMode=$(getClockMode "$currentMode" "$params")
                     fi
 
@@ -261,8 +261,6 @@ clock() {
         done
     }
 
-    mkdir -p "${storageImageDir}" 1>/dev/null 2>&1
-
     looper
 
     V "exit child $name"
@@ -274,7 +272,6 @@ _image() {
     local name=$1
     local pipeIn=$2
     local process=""
-    local storageImageDir="${storageImageDir}/${name}"
 
     #trap quit SIGINT SIGKILL SIGTERM
 
@@ -287,7 +284,7 @@ _image() {
     }
 
     looper() {
-        local currentImage="clear"
+        local currentImage="default"
 
         while true; do
             local command=""
@@ -301,7 +298,7 @@ _image() {
                 start|resume|update)
                     stopProcess $name $process
 
-                    if [[ ! -z "$params" ]]; then
+                    if [[ ! -z "$params" || "$currentImage" == "default" ]]; then
                         currentImage=$(fetchImage $(_fetchImage "$currentImage" "$params") "$params")
                     fi
 
@@ -326,13 +323,13 @@ _image() {
 
         local imagePath="$currentImage"
 
-        if [[ "$data" == "clear" || -f $data ]]; then
+        if [[ "$data" == "clear" || "$data" == "default" || -f $data ]]; then
             imagePath="$data"
 
         elif [[ "$data" == base64://* ]]; then 
             data=${data:9}
 
-            local imageName=$(echo "$data" | cut -c1-20 | md5sum - | cut -f1 -d' ')$(echo "$data" | cut -c1-4 | sed -e 's@/9j/@.jpg@; s@iVBO@.png@')
+            local imageName=$(echo "$data" | md5sum - | cut -f1 -d' ')$(echo "$data" | cut -c1-4 | sed -e 's@/9j/@.jpg@; s@iVBO@.png@')
             if [[ ! -z "$imageName" ]] && [[ "$imageName" == *.png || "$imageName" == *.jpg ]]; then
                 imagePath="${storageImageDir}/${imageName}"
 
@@ -355,7 +352,7 @@ _image() {
     run() {
         V "run child $name: $*"
 
-        if [[ "$currentImage" == "clear" ]]; then
+        if [[ ! -f "$currentImage" ]]; then
             return 0
         fi
 
@@ -369,11 +366,12 @@ _image() {
     V "exit child $name"
 }
 
-image() {
+_cached_image() {
     local cachedImages=( $(${localBinDir}ls -dt --sort=time "${storageImageDir}"/*) )
-    V "$name: ${cachedImages[@]}"
 
     fetchImage() {
+        cachedImages=( $(${localBinDir}ls -dt --sort=time "${storageImageDir}"/*) )
+
         local currentImage=$1
         local params=$2
 
@@ -391,7 +389,10 @@ image() {
                 cachedImages+=( $currentImage )
             fi
 
-            imageIndex=$(( ${#cachedImages[@]} - 1 ))
+            if [[ ${#cachedImages[@]} -gt 0 ]]; then
+                imageIndex=$(( ${#cachedImages[@]} - 1 ))
+                currentImage="${cachedImages[$imageIndex]}"
+            fi
         fi
 
         case $params in
@@ -404,41 +405,45 @@ image() {
                 ;;
         esac
 
-        if [[ ${#cachedImages[@]} -eq 0 ]]; then
-            echo "$currentImage"
+        if [[ ${#cachedImages[@]} -gt 0 ]]; then
+            local indexUpdate=0
+            if [[ "$params" == "next" ]]; then
+                indexUpdate=1
+            elif [[ "$params" == "prev" ]]; then
+                indexUpdate=-1
+            fi
 
-            return 0
+            imageIndex=$(( $imageIndex + $indexUpdate ))
+            if [[ $imageIndex -ge ${#cachedImages[@]} ]]; then
+                imageIndex=0
+            elif [[ $imageIndex -lt 0 ]]; then
+                imageIndex=$(( ${#cachedImages[@]} - 1 ))
+            fi
+
+            currentImage="${cachedImages[$imageIndex]}"
         fi
 
-        local indexUpdate=0
-        if [[ "$params" == "next" ]]; then
-            indexUpdate=1
-        elif [[ "$params" == "prev" ]]; then
-            indexUpdate=-1
-        fi
-
-        imageIndex=$(( $imageIndex + $indexUpdate ))
-        if [[ $imageIndex -ge ${#cachedImages[@]} ]]; then
-            imageIndex=0
-        elif [[ $imageIndex -lt 0 ]]; then
-            imageIndex=$(( ${#cachedImages[@]} - 1 ))
-        fi
-
-        echo "${cachedImages[$imageIndex]}"
+        echo "$currentImage"
     }
 
     _image $@
 }
 
-weather() {
-    fetchImage() {
-        echo "$1"
-    }
+image() {
+    local storageImageDir="${storageImageDir}/$1"
 
-    _image $@
+    _cached_image $@
 }
 
 text() {
+    local storageImageDir="${storageImageDir}/$1"
+
+    _cached_image $@
+}
+
+weather() {
+    local storageImageDir="${storageImageDir}/$1"
+
     fetchImage() {
         echo "$1"
     }
