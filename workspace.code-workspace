@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "device"
+		},
+		{
+			"path": "server/main"
+		},
+		{
+			"path": "server/telegram"
+		},
+		{
+			"path": "solver"
+		}
+	]
+}

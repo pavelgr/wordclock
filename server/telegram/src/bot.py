@@ -46,14 +46,6 @@ def mqttPublish(topic, message):
 
     mqttClient.publish(topic, message) #.wait_for_publish()
 
-# def mqttPublish(topic, message):
-#     command='mosquitto_pub -h {0} -t {1} -m'.format(config.env[config.MQTT_HOST], topic).split(' ') + [message]
-#     logger.info('sendMqttImageUpdate: %s' % " ".join(command))
-
-#     result = subprocess.run(command).returncode
-#     if result != 0:
-#         raise Exception('failed to send mqtt update topic: {0}, message: {1}'.format(topic, message))
-
 
 def checkUser(bot, user):
     try:

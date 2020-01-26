@@ -16,7 +16,7 @@ locationKey = config.env[config.ACCUWEATHER_LOCATION_KEY]
 apiKey = config.env[config.ACCUWEATHER_API_KEY]
 
 imageWidth, imageHeight = (800, 600)
-offsetX, offsetY = (40, 40)
+offsetX, offsetY = (35, 40)
 marginXstart, marginXend,  marginY = (10, 3, 0)
 spacerWidth = 2
 maxSections = 4
@@ -31,7 +31,7 @@ iconWidth, iconHeight = (110, 110)
 
 fontSizeSmall = 16
 fontSizeRegular = 19
-fontSizeLarge = 20
+fontSizeLarge = 21
 fontSizeTemperature = 38
 
 fontFileRegular = config.fontsDir + 'LiberationSans-Regular.ttf'
@@ -47,13 +47,14 @@ def getForecasts():
 
         current={}
         current['title'] = 'Current' 
-        current['date'] = forecastCurrent['DateTime']
+        current['datetime'] = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S') #forecastCurrent['DateTime']
         current['temperature'] = forecastCurrent['Temperature']['Value']
         current['icon'] = forecastCurrent['WeatherIcon']
         current['text'] = forecastCurrent['IconPhrase']
         current['textLong'] = forecastCurrent['IconPhrase']
         current['precipitationProbability'] = forecastCurrent['PrecipitationProbability']
         current['wind'] = forecastCurrent['Wind']['Speed']['Value']
+        current['realFeel'] = forecastCurrent['RealFeelTemperature']['Value']
 
         url = 'http://dataservice.accuweather.com/forecasts/v1/daily/5day/{0}?apikey={1}&metric=true&details=true'.format(locationKey, apiKey)
         response = urllib.request.urlopen(url)
@@ -71,6 +72,7 @@ def getForecasts():
         today['textLong'] = forecastToday['Day']['LongPhrase']
         today['precipitationProbability'] = forecastToday['Day']['PrecipitationProbability']
         today['wind'] = forecastToday['Day']['Wind']['Speed']['Value']
+        today['realFeelHigh'] = forecastToday['RealFeelTemperature']['Maximum']['Value']
 
         tonight={}
         tonight['title'] = 'Tonight' 
@@ -81,6 +83,7 @@ def getForecasts():
         tonight['textLong'] = forecastToday['Night']['LongPhrase']
         tonight['precipitationProbability'] = forecastToday['Night']['PrecipitationProbability']
         tonight['wind'] = forecastToday['Night']['Wind']['Speed']['Value']
+        tonight['realFeelLow'] = forecastToday['RealFeelTemperature']['Minimum']['Value']
 
         tomorrow={}
         tomorrow['title'] = 'Tomorrow'
@@ -92,6 +95,8 @@ def getForecasts():
         tomorrow['textLong'] = forecastTomorrow['Day']['LongPhrase']
         tomorrow['precipitationProbability'] = forecastTomorrow['Day']['PrecipitationProbability']
         tomorrow['wind'] = forecastTomorrow['Day']['Wind']['Speed']['Value']
+        tomorrow['realFeelHigh'] = forecastTomorrow['RealFeelTemperature']['Maximum']['Value']
+        tomorrow['realFeelLow'] = forecastTomorrow['RealFeelTemperature']['Minimum']['Value']
 
         return (current, today, tonight, tomorrow)
     
@@ -103,6 +108,7 @@ def render(forecasts, output):
     fontTitle = ImageFont.truetype(fontFileBold, fontSizeLarge)
     fontTemperature = ImageFont.truetype(fontFileRegular, fontSizeTemperature)
     fontRegular = ImageFont.truetype(fontFileRegular, fontSizeRegular)
+    fontLarge = ImageFont.truetype(fontFileRegular, fontSizeLarge)
 
     image = Image.new('L', (imageWidth, imageHeight), colorGray3)
     imageDraw = ImageDraw.Draw(image)
@@ -136,8 +142,10 @@ def render(forecasts, output):
 
         section = Image.new('L', (sectionWidth, sectionHeight), colorBackground)
         sectionDraw = ImageDraw.Draw(section)
-        x, y = (marginXstart, marginY + 3)
+        x, y = (marginXstart, marginY + 10)
 
+
+        # title
         text = forecast['title']
         textWidth, textHeight = fontTitle.getsize(text)
         # textOffsetX, textOffsetY = fontTitle.getoffset(text)
@@ -145,21 +153,36 @@ def render(forecasts, output):
 
         y += fontSizeLarge + 4
 
+
+        # date/time
         # "2019-10-03T00:00:00-04:00"
-        date = datetime.datetime.strptime(re.sub(r'(.*)([-,+][0-9]{2}):([0-9]{2})', r'\1\2\3', forecast['date']), '%Y-%m-%dT%H:%M:%S%z')
-        text = date.strftime('%b %d, %a')        
+        date = forecast.get('date', None)
+        dateTime = forecast.get('datetime', None)
+
+        if date:
+            date = datetime.datetime.strptime(re.sub(r'(.*)([-,+][0-9]{2}):([0-9]{2})', r'\1\2\3', date), '%Y-%m-%dT%H:%M:%S%z')
+            text = date.strftime('%b %d, %a')
+    
+        else:
+            dateTime = datetime.datetime.strptime(dateTime, '%Y-%m-%dT%H:%M:%S')
+            text = dateTime.strftime('%H:%M')
+
         textWidth, textHeight = fontRegular.getsize(text)
         # textOffsetX, textOffsetY = font.getoffset(text)
         sectionDraw.text((x, y), text, fill=colorBlack, font=fontRegular)
 
         y += fontSizeRegular + 15
 
+
+        # icon
         icon = Image.open('{0}/accuweather_icon{1}.png'.format(config.iconsDir, forecast['icon']))
         icon = icon.resize((iconWidth, iconHeight), Image.LANCZOS)
         section.paste(icon, (x, y))
 
         y += iconHeight + 20
 
+
+        # temperature
         high = forecast.get('high', None)
         low = forecast.get('low', None)
         temperature = forecast.get('temperature', None)
@@ -183,14 +206,39 @@ def render(forecasts, output):
 
         y += fontSizeTemperature + 5
 
+
+        # wind
         text = '{0} km/h'.format(forecast.get('wind'))
 
         textWidth, textHeight = fontRegular.getsize(text)
-        # textOffsetX, textOffsetY = font.getoffset(text)
         sectionDraw.text((x, y), text, fill=colorGray1, font=fontRegular)
 
         y += fontSizeRegular + 15
 
+
+        # realFeel
+        text = 'RealFeel: '
+
+        high = forecast.get('realFeelHigh', None)
+        low = forecast.get('realFeelLow', None)
+        temperature = forecast.get('realFeel', None)
+
+        if (high != None) and (low != None):
+            text2 = '{0}°/{1}°'.format(int(high + 0.5), int(low + 0.5))
+
+        else:
+            text2 = '{0}°'.format(int(high + 0.5) if (high != None) else (int(low + 0.5) if (low != None) else (int(temperature + 0.5))))
+
+        text2Width, text2Height = fontLarge.getsize(text2)
+        textWidth, textHeight = fontRegular.getsize(text)
+
+        sectionDraw.text((x, y), text, fill=colorBlack, font=fontRegular)
+        sectionDraw.text((x + textWidth, y + textHeight - text2Height), text2, fill=colorBlack, font=fontLarge)
+
+        y += fontSizeRegular + 15
+
+
+        # synopsis
         text = forecast.get('text')
 
         spaceWidth, spaceHeight = fontRegular.getsize(' ')
@@ -241,7 +289,14 @@ def prepareWeatherForecast(output, cachePeriod = datetime.timedelta(hours=1)):
 
 def main():
     os.makedirs(config.outputDir, exist_ok=True)
-    prepareWeatherForecast(config.outputDir + '/weather.png')
+    
+    output = BytesIO()
+    prepareWeatherForecast(output)
+    
+    output.seek(0)
+    imagePath = config.outputDir + '/weather.png'
+    with open(imagePath, "wb") as image:
+        shutil.copyfileobj(output, image)    
 
 
 if __name__ == '__main__':
