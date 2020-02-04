@@ -8,6 +8,8 @@ rm -fr install install.tar env.prepare .clear
 mkdir -p ./.clear
 gocryptfs .enc .clear
 
+[ $? == 0 ] || { echo "Crypto-mount failed..."; exit 1; }
+
 mqttHost="raspi3p"
 mqttPort=1883
 
@@ -48,12 +50,12 @@ cp env.prepare install/device/env.prepare
 
 
 mkdir -p install/server/telegram
-cp -a server/telegram/{src,prepare.sh,start.sh,stop.sh} install/server/telegram/
+cp -a server/telegram/{src,prepare.sh,start.sh,stop.sh,docker.conf} install/server/telegram/
 cp env.prepare install/server/telegram/env.prepare
 
 
 mkdir -p install/server/main
-cp -a server/main/{src,prepare.sh,start.sh,stop.sh} install/server/main/
+cp -a server/main/{src,prepare.sh,start.sh,stop.sh,docker.conf} install/server/main/
 cp -a server/main/resources install/server/main/resources
 cp env.prepare install/server/main/env.prepare
 
