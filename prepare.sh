@@ -3,12 +3,19 @@
 cd `dirname $0`
 
 
-rm -fr install install.tar env.prepare
+rm -fr install install.tar env.prepare .clear
 
 mkdir -p ./.clear
 gocryptfs .enc .clear
 
-rules=("-e s@__local_bin_dir__@../bin@")
+mqttHost="raspi3p"
+mqttPort=1883
+
+rules=()
+rules+=("-e s@__local_bin_dir__@../bin@")
+rules+=("-e s@__mqtt_host__@${mqttHost}@")
+rules+=("-e s@__mqtt_port__@${mqttPort}@")
+
 while read STR; do
   if [[ -z "$STR" ]]; then
     continue
@@ -20,10 +27,9 @@ while read STR; do
   rules+=("-e s@${name}@${value}@")
 done < .clear/env.keys
 
-cat env.template | sed ${rules[@]} > env.prepare
-
 fusermount -u .clear
 
+cat env.template | sed ${rules[@]} > env.prepare
 
 mkdir -p install/device/{bin,resources}
 cp deps/bash/install/bin/bash install/device/bin/

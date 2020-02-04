@@ -55,18 +55,21 @@ def checkUser(bot, user):
         raise Exception("failed to check user")
 
 
-def commandStart(update, context):
+def updateChatId(chatIdNew):
     global chatId
+    chatId = chatIdNew
 
+
+def commandStart(update, context):
     checkUser(context.bot, update.message.from_user)
-
-    chatId = update.message.chat.id
+    updateChatId(update.message.chat.id)
 
     update.message.reply_text('Hi!')
 
 
 def commandHelp(update, context):
     checkUser(context.bot, update.message.from_user)
+    updateChatId(update.message.chat.id)
 
     helpText="""
     Help!
@@ -83,6 +86,7 @@ def commandHelp(update, context):
 
 def commandClock(update, context):
     checkUser(context.bot, update.message.from_user)
+    updateChatId(update.message.chat.id)
 
     try:
         topic = config.env[config.MQTT_TOPIC_REQUEST]
@@ -99,6 +103,7 @@ def commandClock(update, context):
 
 def commandImage(update, context):
     checkUser(context.bot, update.message.from_user)
+    updateChatId(update.message.chat.id)
 
     try:
         topic = config.env[config.MQTT_TOPIC_REQUEST]
@@ -115,6 +120,7 @@ def commandImage(update, context):
 
 def commandWeather(update, context):
     checkUser(context.bot, update.message.from_user)
+    updateChatId(update.message.chat.id)
 
     try:
         topic = config.env[config.MQTT_TOPIC_REQUEST]
@@ -131,6 +137,7 @@ def commandWeather(update, context):
 
 def commandText(update, context):
     checkUser(context.bot, update.message.from_user)
+    updateChatId(update.message.chat.id)
 
     try:
         topic = config.env[config.MQTT_TOPIC_REQUEST]
@@ -147,6 +154,7 @@ def commandText(update, context):
 
 def contentText(update, context):
     checkUser(context.bot, update.message.from_user)
+    updateChatId(update.message.chat.id)
 
     logger.info('text: from: {0}/{1}, message: {2}'.format(update.message.from_user.name, update.message.from_user.id, update.message.text))
 
@@ -165,6 +173,7 @@ def contentText(update, context):
 
 def contentPhoto(update, context):
     checkUser(context.bot, update.message.from_user)
+    updateChatId(update.message.chat.id)
 
     image = update.message.photo[-1]
 

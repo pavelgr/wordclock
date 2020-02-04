@@ -6,8 +6,11 @@
 **/env.keys
 **/accuweather.txt
 **/bot.txt
+**/tmp
+
 install
 install.tar
+gocryptfs.txt
 
 !**/.gitkeep
 

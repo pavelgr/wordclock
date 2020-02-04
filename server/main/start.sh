@@ -1,3 +1,5 @@
 #!/bin/bash
 
-docker run -d --restart always --name main python:3-slim-stretch-main
+. docker.conf
+
+docker run -d --restart always --name "${DOCKER_NAME}" "${DOCKER_IMAGE}"

@@ -1,19 +1,12 @@
 #!/bin/bash
 
-docker image rm python:3-slim-stretch-main
+. docker.conf
 
+cat env.prepare > .env
 
-mqttHost=$(hostname)
-mqttPort=1883
+docker image rm "${DOCKER_IMAGE}"
 
-rules=()
-rules+=("-e s@__mqtt_host__@${mqttHost}@")
-rules+=("-e s@__mqtt_port__@${mqttPort}@")
-
-cat env.prepare | sed "${rules[@]}" > .env
-
-
-docker build -t python:3-slim-stretch-main -f- . <<EOF
+docker build -t "${DOCKER_IMAGE}" -f- . <<EOF
 FROM python:3-slim-stretch
 
 RUN apt-get update && apt-get -y install gcc libffi-dev libssl-dev zlib1g-dev libjpeg-dev libfreetype6-dev && apt-get clean
